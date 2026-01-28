@@ -13,4 +13,5 @@ while ret:
     # each frame is numpy array like image. It is same as image at particular part of video
     
     
+    
 

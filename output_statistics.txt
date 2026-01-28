@@ -1,0 +1,8 @@
+Number of circles detected: 3 
+Minimum radius of circles is :50 
+Maximum radius of circles is 96 
+Average radius of circles is 76.0 
+center 	 radius 
+(np.uint16(409), np.uint16(280)) 	 82 
+(np.uint16(619), np.uint16(572)) 	 96 
+(np.uint16(817), np.uint16(128)) 	 50 

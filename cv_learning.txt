@@ -1,0 +1,290 @@
+img=cv2.imread("file_path",cv2.IMREAD_COLOR)
+or img=cv2.imread("file")
+cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+cv2.GaussianBlur(img,(21,21),0)
+cv2.imread("filename")
+cv2.imread("filename",cv2.IMREAD_GRAY)
+cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+cv2.GaussianBlur(img,(5,5),0)
+
+
+
+✨ XDoG for anime outlines
+
+✨ Gradient-based pencil pressure
+
+✨ Paper texture + graphite noise
+
+
+Using matplotlib to display images
+plt.figure(figsize=(8,4))# to tell the pyplot how much should be the size of displayed image
+#for displaying single image
+plt.imshow(img)
+plt.title("Image"")
+plt.axis("off")
+plt.show()
+
+#for displaying multiple images on a single window:
+plt.figure(figsize=(8,4))
+plt.subplot(1,2,1)
+plt.imshow(img)
+plt.title("Image1")
+plt.axis("off")
+plt.show()
+
+plt.subplot(1,2,2)
+plt.imshow(img2)
+plt.title("Image2")
+plt.axis("off")
+plt.show()
+
+Note:plt.subplot(2,2,1),... will have 4 images: top-left,bottom-left,top-right,bottom-right
+(2 is rows, second 2 is column)
+
+
+
+min-max normalization:(values become between [0,1]) but for displaying in cv2 :cv2.imshow("normalized",(normalized*255).astype(np.uint8))
+plt.plot can display images which are still in float with range[0,1]
+img=cv2.imread("image.png")
+min max:
+min=np.min(img,axis=(0,1))
+max=np.max(img,axis=(0,1))
+img=img.astype(np.float32)
+normalized=(img-min)/(max-min)
+for cv2:
+normalized=(normalized*255).astype(np.uint8)
+cv2.imshow("Image",normalized)
+for pyplot:
+plt.figure(figsize=(8,4)) #no need to convert the value between 0,1 to 0,255 and can keep it as float itself.
+plt.imshow(normalized)
+plt.title("Normalized")
+plt.axis("off")
+plt.show()
+
+z-score:(we never convert img->img/255)
+img=cv2.imread("Image.png")
+mean=np.mean(img,axis=(0,1)) # just doing np.mean(img) will get mean of all the elements of all channels
+std=np.std(img,axis=(0,1)) => for getting min,max, mean, std for three channels separately : we should write axis=(0,1)
+normalized=(img.astype(np.float32)-mean)/std
+plt.imshow(normalized)
+
+
+IMAGE_NET:
+img_norm=img.astype(np.float32)/255.0
+IMAGENET_MEAN=np.array([a,b,c]) a,b,c are the standard values of mean of array
+IMAGENET_STD=np.array([A,B,C])
+standardized=(img_norm-IMAGENET_MEAN)/(IMAGENET_STD)
+
+#GEOMETRIC TRANSFORMATION:
+ROTATION
+img2=cv2.flip(img,1)
+img2=cv2.flip(img,0)
+img3=cv2.flip(img,-1)# for flipping horizontally and vertically
+height=img.shape[0]
+width=img.shape[1]
+height,width=img.shape[:2]
+center=(width//2,height//2)
+scale=1
+angle=45
+rotation_matrix=cv2.getRotationMatrix2D(center,angle,scale)# scale tells whether zoomed or not & when rotated the part left will become black
+#in rotation matrix center is (width//2,height//2) and warpAffine(img,rotation_matrix,(width,height))
+#to apply rotation:
+cv2.warpAffine(img,rotation_matrix,(width,height))
+
+we can do rotation for random angle also
+angle=np.random.uniform(-30,30)
+rotation_matrix=cv2.getRotationMatrix(center,angle,scale)
+cv2.warpAffine(img,rotation_matrix,(width,height))
+#SCALING AND ZOOMING
+# for just scaling ( image dimensions are scaled by some factor)
+scale_factor=1.5
+scaled=cv2.resize(img,None,fx=1.5 or scale_factor,fy=scale_factor)
+scaled_final=cv2.resize(img,(target_width,target_height))# if we want to directly scale to appropriate dimensions
+#ZOOMING:
+bring back the resized image to the same dimensions so it looks zoomed
+start_y=(scaled.shape[0]-img.shape[0])//2
+start_x=(scaled.shape[1]-img.shape[1])//2
+zoomed=scaled[start_y:starty+img.shape[0],start_x:start_x+img.shape[1]]
+#Always remember height will be axis 0 and width will be axis 1
+#translation
+translation_matrix=np.float32([[1,0,tx],[0,1,ty]])
+translated=cv2.warpAffine(img,translation_matrix,(width,height))
+#shearing
+shear_matrix=np.float32([[1,shear_scale,tx or 0],[shear_scale1,1,ty]])
+sheared=cv2.warpAffine(img,shear_matrix,(width,height))
+
+#COLOR_AUGMENTATION
+#BRIGHTNESS
+#add the brightness factor after converting img to np.float32
+brightness factor=50
+bright_img=np.clip(img.astype(np.int16)+brightness_factor,0,255).astype(np.uint8)
+#CONTRAST
+#just multiply image by contrast factor after converting it to float32 then to np.uint8
+contrast_factor=1.5
+contrast_img=np.clip(img.astype(np.float32)*contrast_factor,0,255).astype(np.uint8)
+#SATURATION:
+#convert bgr to hsv then multiply the hue by saturation_factor, then clip it and then convert back to bgr
+hue=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+hue[:,:,1]=np.clip(hue[:,:,1].astype(np.float32)*saturation_factor,0,255).aastype(np.uint8)
+saturated=cv2.cvtColor(hue,cv2.COLOR_HSV2BGR)
+#Always remember while multiplying always make arr.astype(np.float32) and while adding as int16 and after computation over np.uint8
+
+#for adding gaussian noise to image
+#we create array with shape of image ,mean, std that user provides and add it to image and clip it
+mean=0
+std=25
+gauss_noise=np.random.normal(mean,std,img.shape).astype(np.float32)#gauss_noise[y,x,0]!=gauss_noise[y,x,1]!=gauss_noise[y,x,2]
+noised_img=np.clip(img.astype(np.int16)+gauss_noise.astype(np.int16),0,255).astype(np.uint8)
+
+#HUE_SHIFT
+#instead of multiplying by saturation factor we should add by hue shift
+hue=cv2.cvtColor(img,cv2.COLOR_BGR2HSV).astype(np.float32)
+hue_shift=30
+hue[:,:,0]=(hue[:,:,0]+hue_shift)%180
+final_img=cv2.cvtColor(hue.astype(np.uint8),cv2.COLOR_HSV2BGR).astype(np.uint8)
+
+CLASSICAL CV TECHNIQUES
+#EDGDE DETECTION: first step of all edge detection techniques is convert to gray image
+1)Sobel: use first derivative:
+ in sobel we find partial derivative wrt x, with wrt y and then combine them 
+ sobel_x=cv2.Sobel(gray_image,cv2.CV_32F,1,0,ksize=3) 1: order of derivative with x, 0 order of derivative wrt y; ksize is kernel (3x3)
+ sobel_y=cv2.Sobel(gray_image,cv2.CV_32F,0,1,ksize=3) cv2.CV_32F will make sobel_x and y to be arrays with dtype float 32
+ sobel_combined=np.clip(np.sqrt(sobel_x**2+sobel_y**2),0,255).astype(np.uint8)
+2) Laplacian:use Second derivative
+#laplacian does combining of second derivatives and finding gradient by itself
+laplaced=cv2.Laplacian(gray_image,cv2.CV_32F)#values will be negative also so we must take mod and clip it
+laplaced_final=cv2.convertScaleAbs(laplaced)#it takes mod and converts to np.uint8
+3)
+Canny:best edge detection technique
+first step is to convert gray image to blurred cv2.GaussianBlur(gray,(21,21),0)
+cannied_img=cv2.Canny(gray_blurred,min_threshold,max_threshold) # smaller min_threshold:more edges
+
+
+CODE FOR DRAING SHAPES :LNE , RECTANGLE, CIRCLE
+cv2.line(img,(x1,y1),(x2,y2),(255,0,0),3)
+#point 1- (x1,y1); point2->(x2,y2); bgr color->(0,255,0); thickness->3
+cv2.rectangle(img,(x1,y1),(x2,y2),(180,200,255),2)
+#topleft point; bottom right point and 2 is  thickness; if we needed filled rectangle we must give -1 instead of 2
+cv2.circle(img,(x,y),radius,(123,245,231),-1) #fully filled circle\
+
+CODE FOR PUTTING TEXT:
+cv2.putText(img,(x,y),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2) #(x,y) is initial cursor position; 1 says if it is normal size other numbers tell how much big or small they will be.
+
+
+#TRESHOLDING GRAY IMAGE-
+_,thresh=cv2.threshold(gray,min_threshold,255,cv2.THRESH_BINARY)
+#it makes places where the intensity is less than min_threshold black and above it to white
+#most cases we use min_threshold as 128 and we say anything that is darker than mid grey become black and anything brighter than 128 should be white
+#for finding contours threshold image is necessary-> contours is checked only at white part of image if object we are interested becomes dark then we have to invert it before thresholding or after it and then apply finding contours
+_,thresh=cv2.threshold(gray,128,255,cv2.THRESH_BINARY)
+contour, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+_,thresh=cv2.threshold(gray,127,255,cv2.THRESH_BINARY)#for converting grayscale to binary image(0 or 255)
+cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+contours,hierarchy=cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+contours,hierarchy=cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+# we can also have cv2.RETR_EXTERNAL instead of cv2.RETR_TREE
+#to draw bounding rectangle around contour we need to get bounding rectangle putting contour in cv then we need to draw rectangle by ourselves
+x,y,w,h=cv2.boundingRect(contours)
+cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),3)
+for getting contour area and contour perimeter
+Area=cv2.contourArea(contour)# contours are always closed (blob like structures that can be seen at edges)
+perimeter=cv2.arcLength(contour,True)#True to say find the closed perimeter of contour
+
+to get only big contours->
+for contour in contours:
+  area=cv2.contourArea(contour)
+  if area>1000:
+     x,y,w,h=cv2.boundingRect(contour)
+     cv2.rectangle(img.copy(),(x,y),(x+w,y+h),(0,255,255),2)
+#to draw contours: cv2.drawContours(image.copy(),contours,-1,(0,0,0),2) -> -1 means all contours
+cv2.drawContours(image,contours,23,(255,0,255),2) will draw 23 contours
+
+#VIDEO CAPTURE AND VIDEO WRTING IN OPENCV
+cap=cv2.VideoCpture("file_path")
+height=cap.get(cv2.CAP_PROP_FRAME_HEIGHT)#unlike images most operations will be taking vid instance as main file
+width=cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+fps=cap.get(cv2.CAP_PROP_FPS)
+fourcc=cv2.VideoWriter_fourcc(*'mp4v')# for setting file type ->mp4 video
+out=cv2.VideoWriter("output-name",fourcc,fps,(width,height))
+while True:
+  ret,frame=cap.read()
+  while not ret:
+    break
+  gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)#treat each frame as image
+  out.write(gray)
+cap.release()
+out.release()
+# release all video instances (output or input)
+
+
+#Template Matching - sees if template(an image) is part of big image
+#two lines are only there 
+result=cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
+min_val,max_val,min_loc,max_loc=cv2.minMaxLoc(result) #max_loc place of best match found if u use ccoeff_normed then choose max_loc 
+copied=img.copy()
+top_left=max_loc
+cv2.rectangle(copied,(top_left[0],top_left[1]),(top_left[0]+template.shape[1],top_left[1]+template.shape[0],(0,0,255),2)
+  
+result=cv2.matchTemplate(image,template,cv2.TM_CCOEFF_NORMED)#to get data on matches of template on image
+min_val,max_val,min_loc,max_loc=cv2.minMaxLoc(result)   
+result=cv2.matchTemplate(img,template,cv2.TM_CCOEFF_NORMED)
+min_val,max_val,min_loc,max_loc=cv2.minMaxLoc(result)
+
+
+#webcam cv
+key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):      # Quit
+        break
+    elif key == ord('s'):    # Save
+        cv2.imwrite('capture.jpg', frame)
+    elif key == ord('g'):    # Grayscale toggle
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        cv2.imshow('Gray', gray)
+#these letters are the conventions followed
+if key = cv2.waitKey(2) & 0xFF: #once cv2.waitKey() is given then cv will start taking inputs from keyboard
+  if key==ord('q')
+    break 
+#it works even if 0xFF not given like 
+key = cv2.waitKey(2) 
+if key =ord('q') # works only if the q in the os has ord 113 that of cv therefore it is better to use 0xFF==ord('')
+or if cv2.waitKey(2)==ord('q') break
+
+
+#haar cascades for face detection, eye detection, smile detection
+faces_cascade=cv2.Cascade_Classifier(cv2.data.haarcascades+'haarcascade_frontal_face_default.xml')
+eyes_cascade=cv2.CascadeClassifier(cv2.data.haarcascades,'haarcascade_eye.xml')
+faces_cascade.detectMultiScale(gray,scale_factor,minNeighbours,flags,minSize,maxSize)# gray:necessary others are default
+#scale_factor: by what the image will shrink
+# minSize: faces won't detect when size less than minSize
+#maxSize: faces won't detect after size great than maxSize
+
+#for webcam or video file it is enough to load cascade of face, eyes, smiles once for all frames and not to do for each frame multiple times
+face_cascade=cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface.xml')
+eye_cascade=cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_eye.xml')
+smiles=cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_smile.xml')
+#minNeighbors above 6 then sparsely we will be able to detect; minNeighbors is 2 or 3 even noise will be considered
+for (x,y,w,h) in face_cascade.detetMultiScale(gray,scale_actor=1.1,minNeighbors=4):
+ cv2.rectangle(frame_copy,(x,y),(x+w,y+h),(0,0,255),2)#we are going to display the frame_copy to the user and not what the webcam frame
+ cv2.putText(frame_copy,"Face",(x,y-10),cv2.FONT_HERSHEY_PLAIN,1,(255,255,0),2)
+ for (ex,ey,ew,eh) in eye_cascade.detectMultiScale(gray[y:y+h,x:x+w],scale_factor=1.3,minNeighbours=4)
+  cv2.rectangle(frame_copy,(x+ex,x+ey),(x+ex+ew,x+ey+eh),(0,255,255),2)
+  cv2.putText(frame_copy,"Eye",(x+ex,y+ey-10),cv2.FONT_HERSHEY_PLAIN,1,(255,255,0),2)
+ for (sx,sy,sw,sh) in smile_cascade.detectMultiScale(gray[y:y+h,x;x+w],scale_factor=1.8,minNeighbours=10)
+  cv2.rectangle(frame_copy,(x+sx,y+sy),(x+sx+sw,y+sy+sh),(0,255,0),2)
+  cv2.putText(frame_copy,"Smile",(x+sx,y+sy-10),cv2.FONT_HERSHEY_PLAIN,1,(255,255,0),2)
+
+
+ANTI-ALIASED IMAGES:
+in image if we zoom we find the pixels very close to boundary having the same color of object but little lower intensity than object then image is anti aliased and the intensity of anti aliased pixels after the edge are not uniform for the image so we need to blur the image, dilate and erode before carrying out our processes.
+This was the problem with the maze given in application so we needed to dilate and erode them also
+
+
+HoughCircles: detects: circles -> high param2 lesser the circles become (reducing false circles and in some cases it ignores actual circles as well
+circles=cv2.HoughCircles(blurred_gray,cv2.HOUGH_GRADIENT,dp=1.2,minDist=50,param1=100,param2=60,minRadius=10,maxRadius=0)
+if we keep something minRadius or maxRadius as 0 it means the minimum or the maximum most
+
+
+
+
+
+
