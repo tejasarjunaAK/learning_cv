@@ -68,5 +68,5 @@ Day1_Assignment_TejasArjuna/
 
 Traditional method of pencil sketch was not solving the problem of mild visibility of edges and boundaries when either side of the edge didn't have much of differnece in intensity. So a new method was thoght, -> The traditional method was followed and the intermediate output was then used to get edges using canny. This is done to make edges more dark when we have the edges and output image, we can blend them by giving each one weights. Now before that edges must be changed to black pixels before doing it. But the canny can't be inverted globally as the non edge background will( region in the intermediate output where intensity is high) will become where the intensity is even more higher and will dominate the image. Makng the whole image lighter or more whiter. So we conditionally invert by invertinng the pixels of very high intensity( >180) alone. So the intention is satisfied and then we blend these altered edges with the output obtained from traditionally created image. This gives image where we get darker edges than we could get from normal method.
 
-##Author
+## Author
 Tejas Arjuna Ashok Kumar
